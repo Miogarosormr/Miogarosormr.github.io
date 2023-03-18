@@ -2,14 +2,21 @@
 layout: page
 title: About
 permalink: /about/
+published: true
 ---
 
-Some information about you!
+### Who am I?
 
-### More Information
+Security Analyst with a special love for malware.
 
-A place to include any other types of information that you'd like to include about yourself.
+### What is this for?
+
+Blog version for my RedWire project which acts as a dump for my malware analysis projects.
+
+### Why am I doing this?
+
+For fun and to improve.
 
 ### Contact me
 
-[email@domain.com](mailto:email@domain.com)
+At this moment you cant, I promise to setup some kind of social media account.
